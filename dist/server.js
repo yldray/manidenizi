@@ -50,6 +50,6 @@ app.get('/api/sayac', (req, res) => {
   res.json({ toplam: maniler.length });
 });
 
-app.listen(PORT, () => {
-  console.log(`Mani Çek çalışıyor: http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Mani Çek çalışıyor: http://0.0.0.0:${PORT}`);
 });
