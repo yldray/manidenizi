@@ -702,39 +702,6 @@
   </div>
 
   <script>
-    // === VARSAYILAN MANILER ===
-    const VARSAYILAN_MANILER = [
-      {"mani":"Çay demledim ocakta,\nŞeker yok ki bardakta,\nSenin tatlı gülüşün,\nYeter bana bu sokakta.","rumuz":"çaycı"},
-      {"mani":"Pencereden baktım aya,\nAy dedim bu ne hava,\nSen olmadan geçen günler,\nSanki düşmüş kış ortaya.","rumuz":"aydede"},
-      {"mani":"Kedim geldi kucağıma,\nMırlayarak dudağıma,\nSeni sevmek ne güzel şey,\nYazıyorum bu sayfaya.","rumuz":"kedicik"},
-      {"mani":"Kahve köpüğü taşar,\nFincan yanmaktan başlar,\nSenin hasretinle dolu,\nBu yürek durmadan çarpar.","rumuz":"barista"},
-      {"mani":"Bahçede gül açmış beyaz,\nDalında bülbül ötmez yaz,\nBen sana mani yazarken,\nKalem bile tutmaz beni az.","rumuz":"şair"},
-      {"mani":"İstanbul'da tramvay geçer,\nBoğaz'da vapur göçer,\nSenin o gülüşün varya,\nBin dertten beni geçer.","rumuz":"İstanbullu"},
-      {"mani":"Çarşıda simit satarım,\nSusam kokusun atarım,\nSen yanımdan geçince,\nSimitleri unuturum.","rumuz":"simitçi"},
-      {"mani":"Yağmur yağar damlardan,\nSu akar sokaklardan,\nBenim sana olan sevdam,\nBitmez yüz yıl geçse aradan.","rumuz":"yağmurcu"},
-      {"mani":"Balkon çiçeği açmış mor,\nKomşu teyze diyor dur,\nBen seni düşünürken,\nÇiçeklere su vermeyi unuttum.","rumuz":"balkoncu"},
-      {"mani":"Dolmuşta yer yok dolu,\nŞoför kızmış yine solu,\nSenin için bu şehirde,\nHer gün yürürüm uzun yolu.","rumuz":"yolcu"},
-      {"mani":"Börek açarım yufkadan,\nPeynir koyarım ortadan,\nAşk dediğin börek gibi,\nKat kat sarar insanı baştan.","rumuz":"börekçi"},
-      {"mani":"Denizde martı uçar,\nKanat açar süzülür,\nSenin adın geçince,\nYüzüm kızarır gülümser.","rumuz":"martı"},
-      {"mani":"Akşam ezanı okunur,\nSofra kurulur dokunur,\nSensiz sofralar boş kalır,\nBir yanım hep eksik olur.","rumuz":"hüzünlü"},
-      {"mani":"Pazardan aldım domates,\nTorbam delindi heves,\nSeni görmek için her gün,\nBahane bulurum herkes.","rumuz":"pazarcı"},
-      {"mani":"Camdan baktım karşıya,\nKuşlar konmuş çatıya,\nBu maniyi yazdım ki,\nBir gülümseme gelsin hatıra.","rumuz":"kuşçu"},
-      {"mani":"Aldım elime kalemi\nDedim kim bu zilli\nHiç çıkmıyor aklımdan\nŞu güzele ne demeli","rumuz":"Aslan"}
-    ];
-
-    const LS_KEY = 'maniCek_kullaniciManileri';
-
-    function tumManiler() {
-      const eklenenler = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
-      return [...VARSAYILAN_MANILER, ...eklenenler];
-    }
-
-    function sayacGuncelle() {
-      const maniler = tumManiler();
-      document.getElementById('sayac').textContent = 'Havuzda ' + maniler.length + ' mani var';
-    }
-    sayacGuncelle();
-
     // === YILDIZLAR ===
     function yildizOlustur() {
       const container = document.getElementById('stars');
@@ -788,35 +755,102 @@
 
     class Konfeti {
       constructor(x, y) {
-        this.x = x; this.y = y;
+        this.x = x;
+        this.y = y;
         this.vx = (Math.random() - 0.5) * 20;
         this.vy = -Math.random() * 18 - 5;
-        this.gravity = 0.4; this.drag = 0.98;
+        this.gravity = 0.4;
+        this.drag = 0.98;
         this.rotation = Math.random() * 360;
         this.rotSpeed = (Math.random() - 0.5) * 15;
         this.size = Math.random() * 8 + 4;
         this.opacity = 1;
-        this.color = ['#f4c542','#e8a020','#ffd700','#ff6b6b','#48bb78','#4ecdc4','#ff9ff3','#54a0ff','#5f27cd','#ff9f43'][Math.floor(Math.random()*10)];
-        this.shape = Math.floor(Math.random() * 3);
+        this.color = ['#f4c542', '#e8a020', '#ffd700', '#ff6b6b', '#48bb78',
+                       '#4ecdc4', '#ff9ff3', '#54a0ff', '#5f27cd', '#ff9f43'][Math.floor(Math.random() * 10)];
+        this.shape = Math.floor(Math.random() * 3); // 0=kare, 1=daire, 2=ucgen
       }
-      update() { this.vy+=this.gravity; this.vx*=this.drag; this.x+=this.vx; this.y+=this.vy; this.rotation+=this.rotSpeed; this.opacity-=0.008; }
+      update() {
+        this.vy += this.gravity;
+        this.vx *= this.drag;
+        this.x += this.vx;
+        this.y += this.vy;
+        this.rotation += this.rotSpeed;
+        this.opacity -= 0.008;
+      }
       draw() {
-        ctx.save(); ctx.translate(this.x,this.y); ctx.rotate(this.rotation*Math.PI/180); ctx.globalAlpha=Math.max(0,this.opacity); ctx.fillStyle=this.color;
-        if(this.shape===0){ctx.fillRect(-this.size/2,-this.size/2,this.size,this.size*0.6);}
-        else if(this.shape===1){ctx.beginPath();ctx.arc(0,0,this.size/2,0,Math.PI*2);ctx.fill();}
-        else{ctx.beginPath();ctx.moveTo(0,-this.size/2);ctx.lineTo(this.size/2,this.size/2);ctx.lineTo(-this.size/2,this.size/2);ctx.fill();}
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.rotation * Math.PI / 180);
+        ctx.globalAlpha = Math.max(0, this.opacity);
+        ctx.fillStyle = this.color;
+        if (this.shape === 0) {
+          ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size * 0.6);
+        } else if (this.shape === 1) {
+          ctx.beginPath();
+          ctx.arc(0, 0, this.size / 2, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.beginPath();
+          ctx.moveTo(0, -this.size / 2);
+          ctx.lineTo(this.size / 2, this.size / 2);
+          ctx.lineTo(-this.size / 2, this.size / 2);
+          ctx.fill();
+        }
         ctx.restore();
       }
     }
 
-    function konfettiPatlat(x,y,adet=80){for(let i=0;i<adet;i++){confettiParcalari.push(new Konfeti(x,y));}if(!confettiAktif){confettiAktif=true;confettiLoop();}}
-    function konfettiYagmur(){for(let i=0;i<150;i++){const k=new Konfeti(Math.random()*canvas.width,-20);k.vy=Math.random()*3+1;k.vx=(Math.random()-0.5)*4;confettiParcalari.push(k);}if(!confettiAktif){confettiAktif=true;confettiLoop();}}
-    function confettiLoop(){ctx.clearRect(0,0,canvas.width,canvas.height);confettiParcalari=confettiParcalari.filter(p=>p.opacity>0&&p.y<canvas.height+50);confettiParcalari.forEach(p=>{p.update();p.draw();});if(confettiParcalari.length>0){requestAnimationFrame(confettiLoop);}else{confettiAktif=false;ctx.clearRect(0,0,canvas.width,canvas.height);}}
+    function konfettiPatlat(x, y, adet = 80) {
+      for (let i = 0; i < adet; i++) {
+        confettiParcalari.push(new Konfeti(x, y));
+      }
+      if (!confettiAktif) {
+        confettiAktif = true;
+        confettiLoop();
+      }
+    }
+
+    function konfettiYagmur() {
+      for (let i = 0; i < 150; i++) {
+        const k = new Konfeti(Math.random() * canvas.width, -20);
+        k.vy = Math.random() * 3 + 1;
+        k.vx = (Math.random() - 0.5) * 4;
+        confettiParcalari.push(k);
+      }
+      if (!confettiAktif) {
+        confettiAktif = true;
+        confettiLoop();
+      }
+    }
+
+    function confettiLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      confettiParcalari = confettiParcalari.filter(p => p.opacity > 0 && p.y < canvas.height + 50);
+      confettiParcalari.forEach(p => { p.update(); p.draw(); });
+      if (confettiParcalari.length > 0) {
+        requestAnimationFrame(confettiLoop);
+      } else {
+        confettiAktif = false;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
 
     // === SPARKLE ===
-    function sparkle(x,y,adet=15){
-      const emojiler=['✨','⭐','💫','🌟','🧿','🔮'];
-      for(let i=0;i<adet;i++){const el=document.createElement('div');el.className='sparkle';el.textContent=emojiler[Math.floor(Math.random()*emojiler.length)];el.style.left=x+'px';el.style.top=y+'px';el.style.setProperty('--tx',(Math.random()-0.5)*200+'px');el.style.setProperty('--ty',(Math.random()-0.5)*200+'px');el.style.setProperty('--rot',(Math.random()*360)+'deg');el.style.fontSize=(14+Math.random()*16)+'px';document.body.appendChild(el);setTimeout(()=>el.remove(),1200);}
+    function sparkle(x, y, adet = 15) {
+      const emojiler = ['✨', '⭐', '💫', '🌟', '🧿', '🔮'];
+      for (let i = 0; i < adet; i++) {
+        const el = document.createElement('div');
+        el.className = 'sparkle';
+        el.textContent = emojiler[Math.floor(Math.random() * emojiler.length)];
+        el.style.left = x + 'px';
+        el.style.top = y + 'px';
+        el.style.setProperty('--tx', (Math.random() - 0.5) * 200 + 'px');
+        el.style.setProperty('--ty', (Math.random() - 0.5) * 200 + 'px');
+        el.style.setProperty('--rot', (Math.random() * 360) + 'deg');
+        el.style.fontSize = (14 + Math.random() * 16) + 'px';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 1200);
+      }
     }
 
     // === HARF HARF ANIMASYON ===
@@ -825,13 +859,33 @@
       let delay = 0;
       for (let i = 0; i < text.length; i++) {
         const char = text[i];
-        if (char === '\n') { element.appendChild(document.createElement('br')); }
-        else { const span = document.createElement('span'); span.className='char'; span.textContent=char===' '?'\u00A0':char; span.style.animationDelay=delay+'ms'; element.appendChild(span); if(char!==' ') delay+=30; }
+        if (char === '\n') {
+          element.appendChild(document.createElement('br'));
+        } else {
+          const span = document.createElement('span');
+          span.className = 'char';
+          span.textContent = char === ' ' ? '\u00A0' : char;
+          span.style.animationDelay = delay + 'ms';
+          element.appendChild(span);
+          if (char !== ' ') delay += 30;
+        }
       }
     }
 
+    // === SAYAC ===
+    async function sayacGuncelle() {
+      try {
+        const res = await fetch('/api/sayac');
+        const data = await res.json();
+        document.getElementById('sayac').textContent = `Havuzda ${data.toplam} mani var`;
+      } catch {
+        document.getElementById('sayac').textContent = '';
+      }
+    }
+    sayacGuncelle();
+
     // === BILDIRIM ===
-    function bildirimGoster(mesaj, tip='basari') {
+    function bildirimGoster(mesaj, tip = 'basari') {
       const el = document.getElementById('bildirim');
       el.textContent = mesaj;
       el.className = 'bildirim ' + tip;
@@ -851,6 +905,7 @@
       const card = document.getElementById('maniCard');
 
       btn.disabled = true;
+      card.classList.remove('show');
 
       // 1. Fincan cevirme
       wrapper.classList.add('flipping');
@@ -861,35 +916,50 @@
       wrapper.classList.add('shaking');
       loading.classList.add('show');
 
-      await sleep(1500);
-      wrapper.classList.remove('shaking');
-      loading.classList.remove('show');
+      try {
+        const res = await fetch('/api/mani');
+        const data = await res.json();
 
-      // 3. Rastgele mani sec
-      const maniler = tumManiler();
-      const rastgele = maniler[Math.floor(Math.random() * maniler.length)];
+        await sleep(1500);
+        wrapper.classList.remove('shaking');
+        loading.classList.remove('show');
 
-      // 4. Popup ac
-      const maniText = document.getElementById('maniText');
-      harfAnimasyonu(maniText, rastgele.mani);
-      document.getElementById('popupOverlay').classList.add('show');
+        // 3. Karti goster + konfeti patlat
+        const maniText = document.getElementById('maniText');
+        harfAnimasyonu(maniText, data.mani);
 
-      const rumuzEl = document.getElementById('maniRumuz');
-      document.getElementById('rumuzText').textContent = rastgele.rumuz || 'anonim';
-      rumuzEl.classList.add('show');
+        // Popup ac
+        document.getElementById('popupOverlay').classList.add('show');
 
-      // Efektler
-      const rect = card.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      sparkle(cx, cy, 20);
-      konfettiPatlat(cx, cy - 50, 100);
-      setTimeout(() => konfettiYagmur(), 400);
-      setTimeout(() => sparkle(cx - 80, cy - 20, 8), 300);
-      setTimeout(() => sparkle(cx + 80, cy + 20, 8), 500);
+        // Rumuzu goster
+        const rumuzEl = document.getElementById('maniRumuz');
+        document.getElementById('rumuzText').textContent = data.rumuz || 'anonim';
+        rumuzEl.classList.add('show');
 
-      btn.disabled = false;
-      cekiliyor = false;
+        // Efektler!
+        const rect = card.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+
+        sparkle(cx, cy, 20);
+        konfettiPatlat(cx, cy - 50, 100);
+
+        setTimeout(() => konfettiYagmur(), 400);
+        setTimeout(() => sparkle(cx - 80, cy - 20, 8), 300);
+        setTimeout(() => sparkle(cx + 80, cy + 20, 8), 500);
+
+        btn.disabled = false;
+        cekiliyor = false;
+        sayacGuncelle();
+
+      } catch (err) {
+        wrapper.classList.remove('shaking');
+        wrapper.classList.remove('flipping');
+        loading.classList.remove('show');
+        btn.disabled = false;
+        cekiliyor = false;
+        bildirimGoster('Bir seyler ters gitti, tekrar dene!', 'hata');
+      }
     }
 
     function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
@@ -901,41 +971,62 @@
     }
 
     // === MANI EKLE ===
-    function maniEkle() {
+    async function maniEkle() {
       const textarea = document.getElementById('yeniMani');
       const rumuzInput = document.getElementById('rumuzInput');
       const mani = textarea.value.trim();
-      const rumuz = (rumuzInput.value.trim() || 'anonim').slice(0, 30);
+      const rumuz = rumuzInput.value.trim();
 
-      if (!mani) { bildirimGoster('Önce bir mani yaz!', 'hata'); return; }
-      if (mani.length < 10) { bildirimGoster('Mani biraz kısa kalmış, devamını yaz!', 'hata'); return; }
-      if (mani.length > 500) { bildirimGoster('Mani en fazla 500 karakter olabilir!', 'hata'); return; }
+      if (!mani) {
+        bildirimGoster('Once bir mani yaz!', 'hata');
+        return;
+      }
+      if (mani.length < 10) {
+        bildirimGoster('Mani biraz kisa kalmis, devamini yaz!', 'hata');
+        return;
+      }
 
-      const eklenenler = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
-      eklenenler.push({ mani: mani, rumuz: rumuz });
-      localStorage.setItem(LS_KEY, JSON.stringify(eklenenler));
+      try {
+        const res = await fetch('/api/mani', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mani, rumuz })
+        });
+        const data = await res.json();
 
-      bildirimGoster('Manin eklendi, ellerine sağlık! ✨');
-      textarea.value = '';
-      rumuzInput.value = '';
-      sayacGuncelle();
+        if (res.ok) {
+          bildirimGoster('Manin eklendi, ellerine saglik! ✨');
+          textarea.value = '';
+          rumuzInput.value = '';
+          sayacGuncelle();
 
-      // Kutlama efekti
-      const section = document.getElementById('ekleSection');
-      section.classList.add('ekle-success');
-      setTimeout(() => section.classList.remove('ekle-success'), 500);
-      const rect = section.getBoundingClientRect();
-      sparkle(rect.left + rect.width / 2, rect.top, 10);
-      konfettiPatlat(rect.left + rect.width / 2, rect.top, 40);
+          // Kutlama efekti
+          const section = document.getElementById('ekleSection');
+          section.classList.add('ekle-success');
+          setTimeout(() => section.classList.remove('ekle-success'), 500);
+
+          const rect = section.getBoundingClientRect();
+          sparkle(rect.left + rect.width / 2, rect.top, 10);
+          konfettiPatlat(rect.left + rect.width / 2, rect.top, 40);
+        } else {
+          bildirimGoster(data.error, 'hata');
+        }
+      } catch {
+        bildirimGoster('Eklerken bir hata olustu!', 'hata');
+      }
     }
 
-    // === LOGO EASTER EGG ===
+    // === LOGO TIKLAMA EASTER EGG ===
     let logoTiklama = 0;
     document.getElementById('logo').addEventListener('click', () => {
       logoTiklama++;
       sparkle(window.innerWidth / 2, 80, 5);
-      if (logoTiklama >= 5) { konfettiYagmur(); logoTiklama = 0; }
+      if (logoTiklama >= 5) {
+        konfettiYagmur();
+        logoTiklama = 0;
+      }
     });
+
   </script>
 </body>
 </html>
