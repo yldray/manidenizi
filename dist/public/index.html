@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mani Çek - Günlük Şansını Dene!</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Inter:wght@400;600&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 60%, #0d1b2a 100%);
+      font-family: 'Inter', sans-serif;
+      color: #e8d5b7;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Canvas konfeti */
+    #confettiCanvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 50;
+    }
+
+    /* Yıldızlar */
+    .stars {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .star {
+      position: absolute;
+      width: 2px; height: 2px;
+      background: #fff;
+      border-radius: 50%;
+      animation: twinkle var(--dur) ease-in-out infinite;
+    }
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.2; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.5); }
+    }
+
+    /* Uçuşan nazar boncukları */
+    .floating-nazar {
+      position: fixed;
+      font-size: 30px;
+      opacity: 0.1;
+      pointer-events: none;
+      z-index: 0;
+      animation: nazarFloat var(--dur) ease-in-out infinite;
+    }
+    @keyframes nazarFloat {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      25% { transform: translateY(-30px) rotate(10deg); }
+      50% { transform: translateY(-15px) rotate(-5deg); }
+      75% { transform: translateY(-40px) rotate(8deg); }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 30px 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Baslik */
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .logo {
+      font-size: 70px;
+      margin-bottom: 8px;
+      animation: float 3s ease-in-out infinite;
+      cursor: default;
+      user-select: none;
+    }
+    .logo:hover { animation: wobble 0.6s ease; }
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-12px) rotate(3deg); }
+    }
+    @keyframes wobble {
+      0% { transform: rotate(0); }
+      15% { transform: rotate(-15deg) scale(1.2); }
+      30% { transform: rotate(10deg) scale(1.1); }
+      45% { transform: rotate(-10deg); }
+      60% { transform: rotate(6deg); }
+      75% { transform: rotate(-4deg); }
+      100% { transform: rotate(0); }
+    }
+    h1 {
+      font-family: 'Caveat', cursive;
+      font-size: 48px;
+      background: linear-gradient(135deg, #f4c542, #e8a020, #f4c542, #ffd700);
+      background-size: 300% 300%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shimmer 3s ease infinite;
+    }
+    @keyframes shimmer {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .subtitle {
+      font-size: 14px;
+      opacity: 0.7;
+      margin-top: 5px;
+    }
+    .sayac {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 6px 18px;
+      background: rgba(244, 197, 66, 0.12);
+      border: 1px solid rgba(244, 197, 66, 0.25);
+      border-radius: 20px;
+      font-size: 13px;
+      color: #f4c542;
+      animation: pulse-glow 2s ease-in-out infinite;
+    }
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 5px rgba(244, 197, 66, 0.1); }
+      50% { box-shadow: 0 0 15px rgba(244, 197, 66, 0.25); }
+    }
+
+    /* Fincan bolumu */
+    .cup-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 15px 0;
+      perspective: 800px;
+    }
+
+    .cup-wrapper {
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+    .cup-wrapper:hover { transform: scale(1.08); }
+    .cup-wrapper.disabled { cursor: not-allowed; opacity: 0.5; }
+    .cup-wrapper.disabled:hover { transform: none; }
+
+    .cup {
+      font-size: 130px;
+      filter: drop-shadow(0 0 30px rgba(244, 197, 66, 0.3));
+      transition: all 0.3s;
+      display: inline-block;
+    }
+    .cup-wrapper:hover .cup {
+      filter: drop-shadow(0 0 60px rgba(244, 197, 66, 0.6));
+    }
+
+    /* Buhar efekti */
+    .steam {
+      position: absolute;
+      top: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+    }
+    .steam span {
+      display: block;
+      width: 8px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 50%;
+      animation: steam-rise 2s ease-out infinite;
+    }
+    .steam span:nth-child(1) { height: 20px; }
+    .steam span:nth-child(2) { animation-delay: 0.4s; height: 28px; }
+    .steam span:nth-child(3) { animation-delay: 0.8s; height: 18px; }
+    .steam span:nth-child(4) { animation-delay: 0.2s; height: 24px; }
+    .steam span:nth-child(5) { animation-delay: 0.6s; height: 16px; }
+    @keyframes steam-rise {
+      0% { opacity: 0.5; transform: translateY(0) scaleX(1); }
+      100% { opacity: 0; transform: translateY(-50px) scaleX(2.5); }
+    }
+
+    /* Fincan cevirme animasyonu */
+    @keyframes cup-flip {
+      0% { transform: rotateY(0) scale(1); }
+      25% { transform: rotateY(90deg) scale(0.9); }
+      50% { transform: rotateY(180deg) scale(0.85); }
+      75% { transform: rotateY(270deg) scale(0.9); }
+      100% { transform: rotateY(360deg) scale(1); }
+    }
+    .flipping .cup {
+      animation: cup-flip 1.2s ease-in-out;
+    }
+
+    /* Islak sallanma */
+    @keyframes wet-shake {
+      0%, 100% { transform: translate(0, 0) rotate(0); }
+      10% { transform: translate(-4px, -2px) rotate(-3deg); }
+      20% { transform: translate(4px, 1px) rotate(2deg); }
+      30% { transform: translate(-3px, -3px) rotate(-2deg); }
+      40% { transform: translate(3px, 2px) rotate(3deg); }
+      50% { transform: translate(-2px, -1px) rotate(-1deg); }
+      60% { transform: translate(2px, 3px) rotate(2deg); }
+      70% { transform: translate(-3px, -2px) rotate(-3deg); }
+      80% { transform: translate(3px, 1px) rotate(1deg); }
+      90% { transform: translate(-1px, -3px) rotate(-2deg); }
+    }
+    .shaking { animation: wet-shake 0.8s ease-in-out; }
+
+    .cek-btn {
+      margin-top: 18px;
+      padding: 16px 50px;
+      font-size: 20px;
+      font-family: 'Caveat', cursive;
+      font-weight: 700;
+      color: #1a0a2e;
+      background: linear-gradient(135deg, #f4c542, #e8a020, #ffd700);
+      background-size: 200% 200%;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 25px rgba(244, 197, 66, 0.4);
+      letter-spacing: 1px;
+      position: relative;
+      overflow: hidden;
+    }
+    .cek-btn::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255,255,255,0.15), transparent);
+      transform: rotate(45deg);
+      animation: btn-shine 3s ease-in-out infinite;
+    }
+    @keyframes btn-shine {
+      0% { transform: translateX(-100%) rotate(45deg); }
+      50% { transform: translateX(100%) rotate(45deg); }
+      100% { transform: translateX(100%) rotate(45deg); }
+    }
+    .cek-btn:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 8px 35px rgba(244, 197, 66, 0.6);
+    }
+    .cek-btn:active { transform: translateY(0) scale(0.98); }
+    .cek-btn:disabled {
+      background: #444;
+      color: #888;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+    .cek-btn:disabled::after { display: none; }
+
+    /* Popup overlay */
+    .popup-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(10, 5, 20, 0.88);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 80;
+      place-items: center;
+      padding: 24px;
+    }
+    .popup-overlay.show {
+      display: grid;
+      animation: overlayIn 0.4s ease;
+    }
+    @keyframes overlayIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Mani karti (popup icinde) */
+    .mani-card {
+      width: 100%;
+      max-width: 460px;
+      padding: 40px 35px 30px;
+      background: linear-gradient(145deg, rgba(45, 27, 78, 0.95), rgba(26, 10, 46, 0.98));
+      border: 1px solid rgba(244, 197, 66, 0.25);
+      border-radius: 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(244, 197, 66, 0.1);
+      animation: cardReveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes cardReveal {
+      from { opacity: 0; transform: scale(0.7) rotateX(15deg); }
+      to { opacity: 1; transform: scale(1) rotateX(0); }
+    }
+
+    /* Kart parlama efekti */
+    .mani-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(244, 197, 66, 0.06), transparent);
+      animation: card-shine 3s ease-in-out infinite;
+    }
+    @keyframes card-shine {
+      0% { left: -100%; }
+      50% { left: 100%; }
+      100% { left: 100%; }
+    }
+
+    .mani-card .corner {
+      position: absolute;
+      font-size: 22px;
+      color: rgba(244, 197, 66, 0.25);
+      animation: corner-spin 4s linear infinite;
+    }
+    .mani-card .corner.tl { top: 12px; left: 18px; }
+    .mani-card .corner.tr { top: 12px; right: 18px; animation-delay: 1s; }
+    .mani-card .corner.bl { bottom: 12px; left: 18px; animation-delay: 2s; }
+    .mani-card .corner.br { bottom: 12px; right: 18px; animation-delay: 3s; }
+    @keyframes corner-spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .popup-close {
+      position: absolute;
+      top: 12px; right: 16px;
+      background: none;
+      border: none;
+      color: rgba(232, 213, 183, 0.4);
+      font-size: 24px;
+      cursor: pointer;
+      z-index: 5;
+      transition: color 0.2s;
+      line-height: 1;
+    }
+    .popup-close:hover { color: #f4c542; }
+
+    .popup-emoji {
+      font-size: 50px;
+      margin-bottom: 15px;
+      display: block;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .mani-text {
+      font-family: 'Caveat', cursive;
+      font-size: 26px;
+      line-height: 1.7;
+      color: #f4c542;
+      white-space: pre-line;
+      position: relative;
+      z-index: 1;
+    }
+    .mani-text .char {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: charIn 0.4s ease forwards;
+    }
+    @keyframes charIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .mani-rumuz {
+      display: none;
+      margin-top: 16px;
+      font-size: 14px;
+      color: rgba(232, 213, 183, 0.6);
+      position: relative;
+      z-index: 1;
+    }
+    .mani-rumuz.show { display: block; }
+    .mani-rumuz span {
+      display: inline-block;
+      padding: 4px 14px;
+      background: rgba(244, 197, 66, 0.1);
+      border: 1px solid rgba(244, 197, 66, 0.2);
+      border-radius: 20px;
+      font-family: 'Caveat', cursive;
+      font-size: 16px;
+      color: #f4c542;
+    }
+
+    .rumuz-input {
+      width: 100%;
+      max-width: 250px;
+      padding: 12px 16px;
+      font-family: 'Caveat', cursive;
+      font-size: 18px;
+      color: #e8d5b7;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(244, 197, 66, 0.15);
+      border-radius: 30px;
+      outline: none;
+      text-align: center;
+      transition: all 0.3s;
+      margin-bottom: 12px;
+    }
+    .rumuz-input::placeholder { color: rgba(232, 213, 183, 0.25); }
+    .rumuz-input:focus {
+      border-color: rgba(244, 197, 66, 0.5);
+      box-shadow: 0 0 15px rgba(244, 197, 66, 0.1);
+    }
+
+    /* Divider */
+    .divider {
+      width: 80%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(244, 197, 66, 0.3), transparent);
+      margin: 35px 0;
+      position: relative;
+    }
+    .divider::after {
+      content: '🧿';
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 20px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    /* Mani ekleme */
+    .ekle-section {
+      width: 100%;
+      text-align: center;
+    }
+    .ekle-title {
+      font-family: 'Caveat', cursive;
+      font-size: 30px;
+      color: #f4c542;
+      margin-bottom: 12px;
+    }
+    .ekle-desc {
+      font-size: 13px;
+      opacity: 0.6;
+      margin-bottom: 15px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 130px;
+      padding: 18px;
+      font-family: 'Caveat', cursive;
+      font-size: 19px;
+      color: #e8d5b7;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(244, 197, 66, 0.15);
+      border-radius: 16px;
+      outline: none;
+      resize: vertical;
+      transition: all 0.3s;
+    }
+    textarea::placeholder { color: rgba(232, 213, 183, 0.25); }
+    textarea:focus {
+      border-color: rgba(244, 197, 66, 0.5);
+      box-shadow: 0 0 20px rgba(244, 197, 66, 0.1);
+      background: rgba(255,255,255,0.06);
+    }
+
+    .ekle-btn {
+      margin-top: 14px;
+      padding: 13px 35px;
+      font-size: 17px;
+      font-family: 'Caveat', cursive;
+      font-weight: 700;
+      color: #e8d5b7;
+      background: transparent;
+      border: 1px solid rgba(244, 197, 66, 0.35);
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .ekle-btn:hover {
+      background: rgba(244, 197, 66, 0.15);
+      border-color: #f4c542;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(244, 197, 66, 0.2);
+    }
+
+    /* Bildirim */
+    .bildirim {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      padding: 14px 28px;
+      border-radius: 14px;
+      font-size: 15px;
+      z-index: 100;
+      transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      max-width: 90%;
+      backdrop-filter: blur(10px);
+    }
+    .bildirim.show { transform: translateX(-50%) translateY(0); }
+    .bildirim.basari {
+      background: rgba(72, 187, 120, 0.85);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(72, 187, 120, 0.3);
+    }
+    .bildirim.hata {
+      background: rgba(245, 101, 101, 0.85);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(245, 101, 101, 0.3);
+    }
+
+    /* Sparkle */
+    .sparkle {
+      position: fixed;
+      pointer-events: none;
+      font-size: 20px;
+      z-index: 60;
+      animation: sparkle-fly 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    }
+    @keyframes sparkle-fly {
+      0% { opacity: 1; transform: translate(0, 0) scale(1) rotate(0deg); }
+      100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0) rotate(var(--rot)); }
+    }
+
+    .footer {
+      margin-top: auto;
+      padding-top: 40px;
+      padding-bottom: 20px;
+      font-size: 12px;
+      opacity: 0.25;
+      text-align: center;
+    }
+
+    /* Loading */
+    .loading { display: none; margin-top: 15px; height: 30px; align-items: center; }
+    .loading.show { display: flex; justify-content: center; gap: 5px; }
+    .loading span {
+      font-size: 18px;
+      animation: loading-bounce 1.5s ease-in-out infinite;
+    }
+    .loading span:nth-child(1) { animation-delay: 0s; }
+    .loading span:nth-child(2) { animation-delay: 0.15s; }
+    .loading span:nth-child(3) { animation-delay: 0.3s; }
+    .loading span:nth-child(4) { animation-delay: 0.45s; }
+    .loading span:nth-child(5) { animation-delay: 0.6s; }
+    @keyframes loading-bounce {
+      0%, 80%, 100% { transform: translateY(0) scale(1); opacity: 0.4; }
+      40% { transform: translateY(-12px) scale(1.3); opacity: 1; }
+    }
+
+    /* Glow ring */
+    .glow-ring {
+      position: absolute;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      border: 2px solid rgba(244, 197, 66, 0.1);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .cup-wrapper:hover .glow-ring {
+      opacity: 1;
+      animation: ring-pulse 1.5s ease-out infinite;
+    }
+    @keyframes ring-pulse {
+      0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.5; }
+      100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+    }
+
+    /* Ekle animasyonu */
+    @keyframes ekle-success {
+      0% { transform: scale(1); }
+      30% { transform: scale(0.95); }
+      60% { transform: scale(1.03); }
+      100% { transform: scale(1); }
+    }
+    .ekle-success { animation: ekle-success 0.5s ease; }
+
+    /* ===== MOBILE RESPONSIVE ===== */
+    @media (max-width: 480px) {
+      .container { padding: 20px 14px; }
+      .logo { font-size: 50px; margin-bottom: 5px; }
+      h1 { font-size: 36px; }
+      .subtitle { font-size: 12px; }
+      .sayac { font-size: 12px; padding: 4px 12px; }
+      .header { margin-bottom: 15px; }
+
+      .cup { font-size: 90px; }
+      .cup-section { margin: 10px 0; }
+      .steam { top: -18px; gap: 6px; }
+      .steam span { width: 6px; }
+      .glow-ring { width: 140px; height: 140px; }
+
+      .cek-btn {
+        padding: 13px 36px;
+        font-size: 18px;
+        margin-top: 12px;
+      }
+
+      .popup-overlay { padding: 16px; }
+      .mani-card { padding: 30px 20px 24px; border-radius: 18px; }
+      .popup-emoji { font-size: 40px; margin-bottom: 10px; }
+      .popup-close { top: 8px; right: 12px; font-size: 22px; }
+      .mani-text { font-size: 20px; line-height: 1.6; }
+      .mani-card .corner { font-size: 16px; }
+      .mani-card .corner.tl { top: 6px; left: 10px; }
+      .mani-card .corner.tr { top: 6px; right: 10px; }
+      .mani-card .corner.bl { bottom: 6px; left: 10px; }
+      .mani-card .corner.br { bottom: 6px; right: 10px; }
+      .mani-rumuz { margin-top: 12px; font-size: 13px; }
+      .mani-rumuz span { font-size: 14px; padding: 3px 12px; }
+
+      .divider { margin: 25px 0; }
+      .divider::after { font-size: 16px; top: -10px; }
+
+      .ekle-title { font-size: 24px; margin-bottom: 10px; }
+      .ekle-desc { font-size: 12px; margin-bottom: 10px; }
+      .rumuz-input { font-size: 16px; padding: 10px 14px; max-width: 220px; margin-bottom: 10px; }
+      textarea { font-size: 16px; min-height: 110px; padding: 14px; border-radius: 12px; }
+      .ekle-btn { font-size: 15px; padding: 11px 28px; }
+
+      .floating-nazar { font-size: 20px !important; }
+    }
+
+    @media (max-width: 360px) {
+      .logo { font-size: 42px; }
+      h1 { font-size: 30px; }
+      .cup { font-size: 75px; }
+      .mani-text { font-size: 18px; }
+      .cek-btn { padding: 12px 30px; font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stars" id="stars"></div>
+  <canvas id="confettiCanvas"></canvas>
+  <div class="bildirim" id="bildirim"></div>
+
+  <div class="popup-overlay" id="popupOverlay" onclick="popupKapat(event)">
+    <div class="mani-card" id="maniCard">
+      <button class="popup-close" onclick="popupKapat()">&times;</button>
+      <span class="popup-emoji">🧿</span>
+      <span class="corner tl">✦</span>
+      <span class="corner tr">✦</span>
+      <span class="corner bl">✦</span>
+      <span class="corner br">✦</span>
+      <div class="mani-text" id="maniText"></div>
+      <div class="mani-rumuz" id="maniRumuz">— <span id="rumuzText"></span></div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <div class="logo" id="logo">🧿</div>
+      <h1>Mani Cek</h1>
+      <p class="subtitle">Fincanini cevir, manini bul</p>
+      <div class="sayac" id="sayac">Yukleniyor...</div>
+    </div>
+
+    <div class="cup-section">
+      <div class="cup-wrapper" id="cupWrapper" onclick="maniCek()">
+        <div class="glow-ring"></div>
+        <div class="steam">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div class="cup" id="cup">☕</div>
+      </div>
+      <button class="cek-btn" id="cekBtn" onclick="maniCek()">Sansima Cek!</button>
+      <div class="loading" id="loading">
+        <span>🔮</span><span>✨</span><span>🧿</span><span>⭐</span><span>💫</span>
+      </div>
+    </div>
+
+
+
+    <div class="divider"></div>
+
+    <div class="ekle-section" id="ekleSection">
+      <div class="ekle-title">Bir Mani de Sen Yaz ✍️</div>
+      <p class="ekle-desc">Yazdigin mani havuza eklenir, bir baskasi cekebilir</p>
+      <input type="text" class="rumuz-input" id="rumuzInput" placeholder="Rumuzun (ör: şair, falcı...)" maxlength="30">
+      <textarea id="yeniMani" placeholder="Dereden gectim tastan,&#10;Gozlerim doldu yastan,&#10;Ben seni unutursam,&#10;Ciksin gozum bu bastan."></textarea>
+      <br>
+      <button class="ekle-btn" onclick="maniEkle()">Manimi Ekle</button>
+    </div>
+
+    <div class="footer">anonim ve serbest</div>
+  </div>
+
+  <script>
+    // === YILDIZLAR ===
+    function yildizOlustur() {
+      const container = document.getElementById('stars');
+      for (let i = 0; i < 100; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.setProperty('--dur', (2 + Math.random() * 4) + 's');
+        star.style.animationDelay = Math.random() * 4 + 's';
+        if (Math.random() > 0.7) {
+          star.style.width = '3px';
+          star.style.height = '3px';
+          star.style.background = '#f4c542';
+        }
+        container.appendChild(star);
+      }
+    }
+
+    // === UCUSAN NAZAR BONCUKLARI ===
+    function nazarOlustur() {
+      const emojiler = ['🧿', '☕', '✨', '⭐'];
+      for (let i = 0; i < 6; i++) {
+        const el = document.createElement('div');
+        el.className = 'floating-nazar';
+        el.textContent = emojiler[Math.floor(Math.random() * emojiler.length)];
+        el.style.left = Math.random() * 90 + 5 + '%';
+        el.style.top = Math.random() * 80 + 10 + '%';
+        el.style.setProperty('--dur', (5 + Math.random() * 8) + 's');
+        el.style.animationDelay = Math.random() * 5 + 's';
+        el.style.fontSize = (20 + Math.random() * 25) + 'px';
+        document.body.appendChild(el);
+      }
+    }
+
+    yildizOlustur();
+    nazarOlustur();
+
+    // === KONFETI SISTEMI ===
+    const canvas = document.getElementById('confettiCanvas');
+    const ctx = canvas.getContext('2d');
+    let confettiParcalari = [];
+    let confettiAktif = false;
+
+    function canvasResize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    canvasResize();
+    window.addEventListener('resize', canvasResize);
+
+    class Konfeti {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 20;
+        this.vy = -Math.random() * 18 - 5;
+        this.gravity = 0.4;
+        this.drag = 0.98;
+        this.rotation = Math.random() * 360;
+        this.rotSpeed = (Math.random() - 0.5) * 15;
+        this.size = Math.random() * 8 + 4;
+        this.opacity = 1;
+        this.color = ['#f4c542', '#e8a020', '#ffd700', '#ff6b6b', '#48bb78',
+                       '#4ecdc4', '#ff9ff3', '#54a0ff', '#5f27cd', '#ff9f43'][Math.floor(Math.random() * 10)];
+        this.shape = Math.floor(Math.random() * 3); // 0=kare, 1=daire, 2=ucgen
+      }
+      update() {
+        this.vy += this.gravity;
+        this.vx *= this.drag;
+        this.x += this.vx;
+        this.y += this.vy;
+        this.rotation += this.rotSpeed;
+        this.opacity -= 0.008;
+      }
+      draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.rotation * Math.PI / 180);
+        ctx.globalAlpha = Math.max(0, this.opacity);
+        ctx.fillStyle = this.color;
+        if (this.shape === 0) {
+          ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size * 0.6);
+        } else if (this.shape === 1) {
+          ctx.beginPath();
+          ctx.arc(0, 0, this.size / 2, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.beginPath();
+          ctx.moveTo(0, -this.size / 2);
+          ctx.lineTo(this.size / 2, this.size / 2);
+          ctx.lineTo(-this.size / 2, this.size / 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+    }
+
+    function konfettiPatlat(x, y, adet = 80) {
+      for (let i = 0; i < adet; i++) {
+        confettiParcalari.push(new Konfeti(x, y));
+      }
+      if (!confettiAktif) {
+        confettiAktif = true;
+        confettiLoop();
+      }
+    }
+
+    function konfettiYagmur() {
+      for (let i = 0; i < 150; i++) {
+        const k = new Konfeti(Math.random() * canvas.width, -20);
+        k.vy = Math.random() * 3 + 1;
+        k.vx = (Math.random() - 0.5) * 4;
+        confettiParcalari.push(k);
+      }
+      if (!confettiAktif) {
+        confettiAktif = true;
+        confettiLoop();
+      }
+    }
+
+    function confettiLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      confettiParcalari = confettiParcalari.filter(p => p.opacity > 0 && p.y < canvas.height + 50);
+      confettiParcalari.forEach(p => { p.update(); p.draw(); });
+      if (confettiParcalari.length > 0) {
+        requestAnimationFrame(confettiLoop);
+      } else {
+        confettiAktif = false;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    // === SPARKLE ===
+    function sparkle(x, y, adet = 15) {
+      const emojiler = ['✨', '⭐', '💫', '🌟', '🧿', '🔮'];
+      for (let i = 0; i < adet; i++) {
+        const el = document.createElement('div');
+        el.className = 'sparkle';
+        el.textContent = emojiler[Math.floor(Math.random() * emojiler.length)];
+        el.style.left = x + 'px';
+        el.style.top = y + 'px';
+        el.style.setProperty('--tx', (Math.random() - 0.5) * 200 + 'px');
+        el.style.setProperty('--ty', (Math.random() - 0.5) * 200 + 'px');
+        el.style.setProperty('--rot', (Math.random() * 360) + 'deg');
+        el.style.fontSize = (14 + Math.random() * 16) + 'px';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 1200);
+      }
+    }
+
+    // === HARF HARF ANIMASYON ===
+    function harfAnimasyonu(element, text) {
+      element.innerHTML = '';
+      let delay = 0;
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        if (char === '\n') {
+          element.appendChild(document.createElement('br'));
+        } else {
+          const span = document.createElement('span');
+          span.className = 'char';
+          span.textContent = char === ' ' ? '\u00A0' : char;
+          span.style.animationDelay = delay + 'ms';
+          element.appendChild(span);
+          if (char !== ' ') delay += 30;
+        }
+      }
+    }
+
+    // === SAYAC ===
+    async function sayacGuncelle() {
+      try {
+        const res = await fetch('/api/sayac');
+        const data = await res.json();
+        document.getElementById('sayac').textContent = `Havuzda ${data.toplam} mani var`;
+      } catch {
+        document.getElementById('sayac').textContent = '';
+      }
+    }
+    sayacGuncelle();
+
+    // === BILDIRIM ===
+    function bildirimGoster(mesaj, tip = 'basari') {
+      const el = document.getElementById('bildirim');
+      el.textContent = mesaj;
+      el.className = 'bildirim ' + tip;
+      setTimeout(() => el.classList.add('show'), 10);
+      setTimeout(() => el.classList.remove('show'), 3500);
+    }
+
+    // === MANI CEK ===
+    let cekiliyor = false;
+    async function maniCek() {
+      if (cekiliyor) return;
+      cekiliyor = true;
+
+      const btn = document.getElementById('cekBtn');
+      const wrapper = document.getElementById('cupWrapper');
+      const loading = document.getElementById('loading');
+      const card = document.getElementById('maniCard');
+
+      btn.disabled = true;
+      card.classList.remove('show');
+
+      // 1. Fincan cevirme
+      wrapper.classList.add('flipping');
+      await sleep(1300);
+      wrapper.classList.remove('flipping');
+
+      // 2. Sallanma
+      wrapper.classList.add('shaking');
+      loading.classList.add('show');
+
+      try {
+        const res = await fetch('/api/mani');
+        const data = await res.json();
+
+        await sleep(1500);
+        wrapper.classList.remove('shaking');
+        loading.classList.remove('show');
+
+        // 3. Karti goster + konfeti patlat
+        const maniText = document.getElementById('maniText');
+        harfAnimasyonu(maniText, data.mani);
+
+        // Popup ac
+        document.getElementById('popupOverlay').classList.add('show');
+
+        // Rumuzu goster
+        const rumuzEl = document.getElementById('maniRumuz');
+        document.getElementById('rumuzText').textContent = data.rumuz || 'anonim';
+        rumuzEl.classList.add('show');
+
+        // Efektler!
+        const rect = card.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+
+        sparkle(cx, cy, 20);
+        konfettiPatlat(cx, cy - 50, 100);
+
+        setTimeout(() => konfettiYagmur(), 400);
+        setTimeout(() => sparkle(cx - 80, cy - 20, 8), 300);
+        setTimeout(() => sparkle(cx + 80, cy + 20, 8), 500);
+
+        btn.disabled = false;
+        cekiliyor = false;
+        sayacGuncelle();
+
+      } catch (err) {
+        wrapper.classList.remove('shaking');
+        wrapper.classList.remove('flipping');
+        loading.classList.remove('show');
+        btn.disabled = false;
+        cekiliyor = false;
+        bildirimGoster('Bir seyler ters gitti, tekrar dene!', 'hata');
+      }
+    }
+
+    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    // === POPUP KAPAT ===
+    function popupKapat(e) {
+      if (e && e.target !== document.getElementById('popupOverlay')) return;
+      document.getElementById('popupOverlay').classList.remove('show');
+    }
+
+    // === MANI EKLE ===
+    async function maniEkle() {
+      const textarea = document.getElementById('yeniMani');
+      const rumuzInput = document.getElementById('rumuzInput');
+      const mani = textarea.value.trim();
+      const rumuz = rumuzInput.value.trim();
+
+      if (!mani) {
+        bildirimGoster('Once bir mani yaz!', 'hata');
+        return;
+      }
+      if (mani.length < 10) {
+        bildirimGoster('Mani biraz kisa kalmis, devamini yaz!', 'hata');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/mani', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mani, rumuz })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          bildirimGoster('Manin eklendi, ellerine saglik! ✨');
+          textarea.value = '';
+          rumuzInput.value = '';
+          sayacGuncelle();
+
+          // Kutlama efekti
+          const section = document.getElementById('ekleSection');
+          section.classList.add('ekle-success');
+          setTimeout(() => section.classList.remove('ekle-success'), 500);
+
+          const rect = section.getBoundingClientRect();
+          sparkle(rect.left + rect.width / 2, rect.top, 10);
+          konfettiPatlat(rect.left + rect.width / 2, rect.top, 40);
+        } else {
+          bildirimGoster(data.error, 'hata');
+        }
+      } catch {
+        bildirimGoster('Eklerken bir hata olustu!', 'hata');
+      }
+    }
+
+    // === LOGO TIKLAMA EASTER EGG ===
+    let logoTiklama = 0;
+    document.getElementById('logo').addEventListener('click', () => {
+      logoTiklama++;
+      sparkle(window.innerWidth / 2, 80, 5);
+      if (logoTiklama >= 5) {
+        konfettiYagmur();
+        logoTiklama = 0;
+      }
+    });
+
+  </script>
+</body>
+</html>
