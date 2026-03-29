@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 777;
 const DATA_FILE = path.join(__dirname, 'maniler.json');
 
 app.use(express.json());
@@ -50,6 +50,6 @@ app.get('/api/sayac', (req, res) => {
   res.json({ toplam: maniler.length });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Mani Çek çalışıyor: http://0.0.0.0:${PORT}`);
+app.listen(PORT, () => {
+  console.log('Mani Cek calisiyor: port ' + PORT);
 });
